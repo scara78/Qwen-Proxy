@@ -224,7 +224,7 @@ export function useChat() {
       (err) => {
         const errorMessage = {
           role: 'assistant',
-          content: `错误: ${err.message}`,
+          content: `Eroare: ${err.message}`,
           id: generateId(),
           isError: true,
         }

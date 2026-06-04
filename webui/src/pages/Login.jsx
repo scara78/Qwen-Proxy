@@ -12,7 +12,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!key.trim()) {
-      setError('请输入 API 密钥')
+      setError('Vă rugăm să introduceți cheia API')
       return
     }
 
@@ -25,7 +25,7 @@ export default function Login() {
         setApiKey(key.trim())
         navigate('/chat')
       } else {
-        setError('API 密钥无效')
+        setError('Cheie API invalidă')
       }
     } catch {
       // If verify endpoint doesn't exist, just save the key
@@ -51,7 +51,7 @@ export default function Login() {
             <span className="text-2xl font-bold text-white">Q</span>
           </div>
           <h1 className="text-3xl font-display font-bold text-white">Qwen2API</h1>
-          <p className="mt-2 text-slate-400 text-sm">输入 API 密钥以继续</p>
+          <p className="mt-2 text-slate-400 text-sm">Introduceți cheia API pentru a continua</p>
         </div>
 
         {/* Login card */}
@@ -62,7 +62,7 @@ export default function Login() {
           <div className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
-                API 密钥
+                Cheie API
               </label>
               <input
                 type="password"
@@ -88,17 +88,17 @@ export default function Login() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                   验证中...
+                   Se verifică...
                 </span>
               ) : (
-                '登录'
+                'Autentificare'
               )}
             </button>
           </div>
 
           <div className="mt-6 pt-5 border-t border-white/[0.06]">
             <p className="text-xs text-slate-500 text-center">
-              API 密钥仅存储在本地，不会发送给第三方。
+              Cheia API este stocată doar local și nu va fi trimisă către terți.
             </p>
           </div>
         </form>

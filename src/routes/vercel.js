@@ -67,7 +67,7 @@ router.get('/vercel/env', adminKeyVerify, async (req, res) => {
   try {
     const { vercelToken, projectId, teamId } = getVercelConfig()
     if (!vercelToken || !projectId) {
-      return res.status(400).json({ error: '未配置 VERCEL_TOKEN 或 VERCEL_PROJECT_ID' })
+      return res.status(400).json({ error: 'VERCEL_TOKEN sau VERCEL_PROJECT_ID nu sunt configurate' })
     }
     const url = teamId
       ? `https://api.vercel.com/v9/projects/${projectId}/env?teamId=${teamId}`
@@ -84,7 +84,7 @@ router.get('/vercel/env', adminKeyVerify, async (req, res) => {
     }))
     res.json({ envs })
   } catch (error) {
-    logger.error('获取 Vercel 环境变量失败', 'VERCEL', '', error.message)
+    logger.error('Eroare la obținerea variabilelor de mediu Vercel', 'VERCEL', '', error.message)
     res.status(500).json({ error: error.response?.data?.error?.message || error.message })
   }
 })
@@ -93,11 +93,11 @@ router.post('/vercel/env', adminKeyVerify, async (req, res) => {
   try {
     const { vercelToken, projectId, teamId } = getVercelConfig()
     if (!vercelToken || !projectId) {
-      return res.status(400).json({ error: '未配置 VERCEL_TOKEN 或 VERCEL_PROJECT_ID' })
+      return res.status(400).json({ error: 'VERCEL_TOKEN sau VERCEL_PROJECT_ID nu sunt configurate' })
     }
     const { key, value, target = ['production', 'preview', 'development'], type = 'encrypted' } = req.body
     if (!key || value === undefined) {
-      return res.status(400).json({ error: '缺少 key 或 value' })
+      return res.status(400).json({ error: 'Lipsește cheia sau valoarea' })
     }
     const baseUrl = teamId
       ? `https://api.vercel.com/v9/projects/${projectId}/env?teamId=${teamId}`
@@ -115,7 +115,7 @@ router.post('/vercel/env', adminKeyVerify, async (req, res) => {
     }
     res.json({ success: true, key })
   } catch (error) {
-    logger.error('更新 Vercel 环境变量失败', 'VERCEL', '', error.message)
+    logger.error('Eroare la actualizarea variabilei de mediu Vercel', 'VERCEL', '', error.message)
     res.status(500).json({ error: error.response?.data?.error?.message || error.message })
   }
 })
@@ -124,7 +124,7 @@ router.post('/vercel/redeploy', adminKeyVerify, async (req, res) => {
   try {
     const { vercelToken, projectId, teamId } = getVercelConfig()
     if (!vercelToken || !projectId) {
-      return res.status(400).json({ error: '未配置 VERCEL_TOKEN 或 VERCEL_PROJECT_ID' })
+      return res.status(400).json({ error: 'VERCEL_TOKEN sau VERCEL_PROJECT_ID nu sunt configurate' })
     }
     const deploymentsUrl = teamId
       ? `https://api.vercel.com/v6/deployments?projectId=${projectId}&teamId=${teamId}&limit=1`
@@ -134,7 +134,7 @@ router.post('/vercel/redeploy', adminKeyVerify, async (req, res) => {
     })
     const latest = deploymentsRes.data.deployments?.[0]
     if (!latest) {
-      return res.status(404).json({ error: '未找到部署记录' })
+      return res.status(404).json({ error: 'Nu s-a găsit nicio înregistrare de deployment' })
     }
     const redeployUrl = teamId
       ? `https://api.vercel.com/v13/deployments?teamId=${teamId}&forceNew=1`
@@ -152,7 +152,7 @@ router.post('/vercel/redeploy', adminKeyVerify, async (req, res) => {
       url: redeployRes.data.url
     })
   } catch (error) {
-    logger.error('触发 Vercel 重新部署失败', 'VERCEL', '', error.message)
+    logger.error('Eroare la declanșarea redeployment-ului Vercel', 'VERCEL', '', error.message)
     res.status(500).json({ error: error.response?.data?.error?.message || error.message })
   }
 })

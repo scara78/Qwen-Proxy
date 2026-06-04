@@ -17,14 +17,14 @@ export default function AccountCard({ account, onRefresh, onDelete, onToggleDisa
   // Disabled wins the visual presentation regardless of token validity —
   // the rotator skips disabled rows so calling them "valid" is misleading.
   const statusLabel = isDisabled
-    ? '已禁用'
+    ? 'Dezactivat'
     : loginFailed
-      ? '登录失败'
+      ? 'Autentificare eșuată'
       : !hasToken
-        ? '未登录'
+        ? 'Neautentificat'
         : isValid
-          ? (isExpiringSoon ? '即将过期' : '有效')
-          : '已过期'
+          ? (isExpiringSoon ? 'Expiră curând' : 'Valid')
+          : 'Expirat'
   const statusClass = isDisabled
     ? 'bg-slate-500/15 text-slate-400 border border-slate-500/25'
     : (loginFailed || !hasToken)
@@ -50,7 +50,7 @@ export default function AccountCard({ account, onRefresh, onDelete, onToggleDisa
   }
 
   const handleDelete = async () => {
-    if (!confirm(`确定删除账号 ${account.email}？`)) return
+    if (!confirm(`Sigur doriți să ștergeți contul ${account.email}?`)) return
     setDeleting(true)
     try {
       await onDelete(account.email)
@@ -80,11 +80,11 @@ export default function AccountCard({ account, onRefresh, onDelete, onToggleDisa
           <div className="mt-2 flex items-center gap-3 text-xs text-slate-500 flex-wrap">
             <span className={`px-2 py-0.5 rounded-full ${statusClass}`}>{statusLabel}</span>
             {expiryTime && hasToken && !isDisabled && (
-              <span>过期时间: {new Date(expiryTime).toLocaleString()}</span>
+              <span>Timp expirare: {new Date(expiryTime).toLocaleString()}</span>
             )}
             {loginFailed && !isDisabled && (
               <span title={new Date(account.lastLoginError).toLocaleString()}>
-                上次登录失败: {new Date(account.lastLoginError).toLocaleTimeString()}
+                Ultima autentificare eșuată: {new Date(account.lastLoginError).toLocaleTimeString()}
               </span>
             )}
           </div>
@@ -106,7 +106,7 @@ export default function AccountCard({ account, onRefresh, onDelete, onToggleDisa
                   ? 'text-emerald-400 hover:bg-emerald-500/10'
                   : 'text-slate-400 hover:text-amber-400 hover:bg-amber-500/10'
               }`}
-              title={isDisabled ? '启用账号' : '禁用账号（保留密码，可恢复）'}
+              title={isDisabled ? 'Activează cont' : 'Dezactivat cont (păstrează parola, poate fi recuperat)'}
             >
               {isDisabled ? (
                 // play icon (enable)
@@ -126,7 +126,7 @@ export default function AccountCard({ account, onRefresh, onDelete, onToggleDisa
             onClick={handleRefresh}
             disabled={refreshing || isDisabled}
             className="p-1.5 rounded-lg text-slate-400 hover:text-accent-glow hover:bg-accent-primary/10 transition-all disabled:opacity-50"
-            title={isDisabled ? '已禁用' : (loginFailed ? '重试登录' : '刷新 Token')}
+            title={isDisabled ? 'Dezactivat' : (loginFailed ? 'Reîncearcă autentificarea' : 'Reîmprospătează Token')}
           >
             <svg className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -136,7 +136,7 @@ export default function AccountCard({ account, onRefresh, onDelete, onToggleDisa
             onClick={handleDelete}
             disabled={deleting}
             className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50"
-            title="删除账号"
+            title="Șterge cont"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

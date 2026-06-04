@@ -28,7 +28,7 @@ export default function ModelSelector({ value, onChange }) {
       const data = await fetchModels()
       // Strip -thinking / -search suffixes (controlled by toggles in the
       // chat page) and dedupe down to base model ids.
-      const SUFFIX_RE = /(?:-(?:thinking|search))+$/
+      const SUFF_RE = /(?:-(?:thinking|search))+$/
       const seen = new Set()
       const baseIds = []
       for (const m of data) {
@@ -60,7 +60,7 @@ export default function ModelSelector({ value, onChange }) {
         <svg className="w-4 h-4 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
-        <span className="text-slate-300 max-w-[140px] truncate">{value || '选择模型'}</span>
+        <span className="text-slate-300 max-w-[140px] truncate">{value || 'Alege modelul'}</span>
         <svg className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
@@ -73,16 +73,16 @@ export default function ModelSelector({ value, onChange }) {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="搜索模型..."
+              placeholder="Caută model..."
               className="w-full px-3 py-2 bg-white/[0.08] rounded-lg text-sm text-slate-200 placeholder-slate-500 outline-none border border-white/[0.06] focus:border-accent-primary/30 "
               autoFocus
             />
           </div>
           <div className="overflow-y-auto max-h-60 p-1">
             {loading ? (
-              <div className="px-3 py-4 text-center text-sm text-slate-500">加载中...</div>
+              <div className="px-3 py-4 text-center text-sm text-slate-500">Se încarcă...</div>
             ) : filtered.length === 0 ? (
-              <div className="px-3 py-4 text-center text-sm text-slate-500">未找到模型</div>
+              <div className="px-3 py-4 text-center text-sm text-slate-500">Niciun model găsit</div>
             ) : (
               filtered.map((model) => (
                 <button

@@ -30,7 +30,7 @@ renderer.code = function (code, language) {
   } catch {
     highlighted = escapeHtml(code)
   }
-  return `<div class="code-block-wrapper" data-lang="${escapeHtml(lang)}" data-code="${escapeAttr(code)}"><div class="code-block-header"><span class="code-block-lang">${escapeHtml(lang)}</span><button class="code-copy-btn" onclick="window.__copyCode(this)">复制</button></div><pre class="code-block-pre"><code class="hljs language-${escapeHtml(lang)}">${highlighted}</code></pre></div>`
+  return `<div class="code-block-wrapper" data-lang="${escapeHtml(lang)}" data-code="${escapeAttr(code)}"><div class="code-block-header"><span class="code-block-lang">${escapeHtml(lang)}</span><button class="code-copy-btn" onclick="window.__copyCode(this)">Copiază</button></div><pre class="code-block-pre"><code class="hljs language-${escapeHtml(lang)}">${highlighted}</code></pre></div>`
 }
 
 function escapeHtml(str) {
@@ -58,8 +58,8 @@ if (typeof window !== 'undefined') {
     const wrapper = btn.closest('.code-block-wrapper')
     const code = wrapper?.getAttribute('data-code') || ''
     navigator.clipboard.writeText(code).then(() => {
-      btn.textContent = '已复制'
-      setTimeout(() => { btn.textContent = '复制' }, 2000)
+      btn.textContent = 'Copiat'
+      setTimeout(() => { btn.textContent = 'Copiază' }, 2000)
     })
   }
 }
