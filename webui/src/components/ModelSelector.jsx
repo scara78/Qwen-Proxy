@@ -26,22 +26,21 @@ export default function ModelSelector({ value, onChange }) {
     setLoading(true)
     try {
       const data = await fetchModels()
-      // Strip -thinking / -search suffixes (controlled by toggles in the
-      // chat page) and dedupe down to base model ids.
-      const SUFF_RE = /(?:-(?:thinking|search))+$/
+      // Regex actualizat pentru a curăța sufixele qwen3.6 și qwen3.7
+      const SUFF_RE = /(?:-(?:thinking|search|image|video|image-edit))+$/
       const seen = new Set()
       const baseIds = []
+      
       for (const m of data) {
-        const base = String(m.id || '').replace(SUFFIX_RE, '')
+        const base = String(m.id || '').replace(SUFF_RE, '')
         if (base && !seen.has(base)) {
           seen.add(base)
           baseIds.push(base)
         }
       }
-      setModels(baseIds.length > 0 ? baseIds : ['qwen3.6-plus'])
+      setModels(baseIds.length > 0 ? baseIds : ['qwen3.7-plus'])
     } catch {
-      // fallback
-      setModels(['qwen3.6-plus'])
+      setModels(['qwen3.7-plus'])
     } finally {
       setLoading(false)
     }
