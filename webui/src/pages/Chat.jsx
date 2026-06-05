@@ -194,7 +194,7 @@ export default function Chat() {
                 </div>
                 <h2 className="text-xl font-display font-semibold text-white mb-2">Începe conversația</h2>
                 <p className="text-sm text-slate-400 max-w-sm">
-                  Pune orice întrebare, răspunsul va fi generat în timp real de modelul Qwen AI.
+                  Pune orice întrebare sau atașează o imagine cu un text pentru a o edita.
                 </p>
               </div>
             ) : (
@@ -291,6 +291,16 @@ export default function Chat() {
               </div>
             )}
 
+            {/* Hint când există imagine atașată */}
+            {attachments.some(a => a.type === 'image') && (
+              <div className="mb-2 text-xs text-slate-500 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-accent-glow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Scrie o instrucțiune pentru a edita imaginea (ex: "Fă cerul albastru")</span>
+              </div>
+            )}
+
             <div className="flex items-end gap-3">
               {/* File upload button */}
               <button
@@ -317,7 +327,7 @@ export default function Chat() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                   placeholder="Scrie un mesaj..."
+                  placeholder="Scrie un mesaj..."
                   rows={1}
                   className="input-field resize-none min-h-[48px] max-h-[200px] pr-12"
                   style={{ height: Math.min(200, Math.max(48, input.split('\n').length * 24 + 24)) + 'px' }}
