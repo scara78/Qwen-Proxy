@@ -4,6 +4,7 @@ const config = require('../config/index.js')
 const { logger } = require('./logger')
 const { getSsxmodItna, getSsxmodItna2 } = require('./ssxmod-manager')
 const { getProxyAgent, getChatBaseUrl, buildAgentForUrl, getProxyHost } = require('./proxy-helper')
+const { getBaxiaHeadersSync } = require('./baxia-token')
 
 // Errors that look like the proxy is dead (TCP-level / DNS / handshake).
 // Anything in this set on a proxied request triggers proxy failover.
@@ -31,6 +32,39 @@ async function resolveAccountProxy(email) {
     if (!email) return null
     if (!accountManager.proxyPool) return null
     return await accountManager.getProxyForAccount(email)
+}
+
+/**
+ * Build the common request headers for chat.qwen.ai requests.
+ * Merges ssxmod cookies + Baxia anti-bot headers.
+ * @param {string} token - Bearer token
+ * @param {string} chatBaseUrl
+ * @returns {object}
+ */
+function buildRequestHeaders(token, chatBaseUrl) {
+    const baxia = getBaxiaHeadersSync()
+    return {
+        'Authorization': `Bearer ${token}`,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0',
+        'Connection': 'keep-alive',
+        'Accept': 'application/json',
+        'Accept-Encoding': 'gzip, deflate, br, zstd',
+        'Content-Type': 'application/json',
+        'Timezone': 'Mon Dec 08 2025 17:28:55 GMT+0800',
+        'sec-ch-ua': '"Microsoft Edge";v="143", "Chromium";v="143", "Not A(Brand";v="24"',
+        'source': 'web',
+        'Version': '0.1.13',
+        'bx-v': baxia['bx-v'],
+        'bx-ua': baxia['bx-ua'],
+        'bx-umid-token': baxia['bx-umid-token'],
+        'Origin': chatBaseUrl,
+        'Sec-Fetch-Site': 'same-origin',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Dest': 'empty',
+        'Referer': `${chatBaseUrl}/c/guest`,
+        'Accept-Language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Cookie': `ssxmod_itna=${getSsxmodItna()};ssxmod_itna2=${getSsxmodItna2()}`,
+    }
 }
 
 /**
@@ -75,26 +109,7 @@ const sendChatRequest = async (body) => {
             const chatBaseUrl = getChatBaseUrl()
 
             const requestConfig = {
-                headers: {
-                    'Authorization': `Bearer ${currentToken}`,
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",
-                    "Connection": "keep-alive",
-                    "Accept": "application/json",
-                    "Accept-Encoding": "gzip, deflate, br, zstd",
-                    "Content-Type": "application/json",
-                    "Timezone": "Mon Dec 08 2025 17:28:55 GMT+0800",
-                    "sec-ch-ua": "\"Microsoft Edge\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"",
-                    "source": "web",
-                    "Version": "0.1.13",
-                    "bx-v": "2.5.31",
-                    "Origin": chatBaseUrl,
-                    "Sec-Fetch-Site": "same-origin",
-                    "Sec-Fetch-Mode": "cors",
-                    "Sec-Fetch-Dest": "empty",
-                    "Referer": `${chatBaseUrl}/c/guest`,
-                    "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7",
-                    "Cookie": `ssxmod_itna=${getSsxmodItna()};ssxmod_itna2=${getSsxmodItna2()}`,
-                },
+                headers: buildRequestHeaders(currentToken, chatBaseUrl),
                 responseType: 'stream',
                 timeout: 60 * 1000,
             }
@@ -160,26 +175,7 @@ const generateChatID = async (currentToken, model, email = null, proxyUrl = null
         const chatBaseUrl = getChatBaseUrl()
 
         const requestConfig = {
-            headers: {
-                'Authorization': `Bearer ${currentToken}`,
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",
-                "Connection": "keep-alive",
-                "Accept": "application/json",
-                "Accept-Encoding": "gzip, deflate, br, zstd",
-                "Content-Type": "application/json",
-                "Timezone": "Mon Dec 08 2025 17:28:55 GMT+0800",
-                "sec-ch-ua": "\"Microsoft Edge\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"",
-                "source": "web",
-                "Version": "0.1.13",
-                "bx-v": "2.5.31",
-                "Origin": chatBaseUrl,
-                "Sec-Fetch-Site": "same-origin",
-                "Sec-Fetch-Mode": "cors",
-                "Sec-Fetch-Dest": "empty",
-                "Referer": `${chatBaseUrl}/c/guest`,
-                "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7",
-                "Cookie": `ssxmod_itna=${getSsxmodItna()};ssxmod_itna2=${getSsxmodItna2()}`,
-            }
+            headers: buildRequestHeaders(currentToken, chatBaseUrl),
         }
 
         const agent = proxyUrl ? buildAgentForUrl(proxyUrl) : getProxyAgent()
@@ -190,11 +186,11 @@ const generateChatID = async (currentToken, model, email = null, proxyUrl = null
         }
 
         const response_data = await axios.post(`${chatBaseUrl}/api/v2/chats/new`, {
-            "title": "New Chat",
-            "models": [model],
-            "chat_mode": "local",
-            "chat_type": "t2i",
-            "timestamp": new Date().getTime()
+            'title': 'New Chat',
+            'models': [model],
+            'chat_mode': 'local',
+            'chat_type': 't2i',
+            'timestamp': new Date().getTime()
         }, requestConfig)
 
         return response_data.data?.data?.id || null

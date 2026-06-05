@@ -13,7 +13,6 @@ import {
   setEnableSearch as saveEnableSearch,
 } from '../utils/storage'
 import { DEFAULT_MODEL } from '../utils/constants'
-import { getApiKey } from '../utils/storage'
 
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
@@ -97,7 +96,7 @@ export function useChat() {
   // suffixes based on the toggle state. Selectable models in the UI are
   // always base ids (suffixes are stripped in ModelSelector).
   const composeModel = useCallback(() => {
-    let m = (selectedModel || DEFAULT_MODEL).replace(/(?:-(?:thinking|search|image-edit))+$/, '')
+    let m = (selectedModel || DEFAULT_MODEL).replace(/(?:-(?:thinking|search))+$/, '')
     if (enableThinking) m += '-thinking'
     if (enableSearch) m += '-search'
     return m
@@ -159,10 +158,6 @@ export function useChat() {
     }
   }, [composeModel])
 
-  /**
-   * Detectare automată: dacă există attachment imagine + prompt text → editare imagine
-   * Altfel → chat normal
-   */
   const sendMessage = useCallback(async (content, attachments = []) => {
     // Require an explicit "new chat" before sending — no implicit creation.
     if (!activeId) return
@@ -189,76 +184,6 @@ export function useChat() {
       )
     )
 
-    // **Logică automată: dacă există imagine + prompt → editare imagine**
-    const hasImage = attachments.some(a => a.type === 'image')
-    if (hasImage && content.trim()) {
-      // === Mod editare imagine ===
-      try {
-        const imageAttachment = attachments.find(a => a.type === 'image')
-        const base64Response = await fetch(imageAttachment.data)
-        const blob = await base64Response.blob()
-
-        const formData = new FormData()
-        formData.append('image', blob, imageAttachment.name || 'image.png')
-        formData.append('prompt', content)
-        formData.append('model', composeModel() + '-image-edit')
-
-        const key = getApiKey()
-        const response = await fetch('/v1/images/edits', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${key}`,
-          },
-          body: formData,
-        })
-
-        if (!response.ok) {
-          const error = await response.json().catch(() => ({ error: response.statusText }))
-          throw new Error(error.error?.message || error.error || `Request failed: ${response.status}`)
-        }
-
-        const result = await response.json()
-        const imageUrl = result.data?.[0]?.url
-
-        if (!imageUrl) {
-          throw new Error('Nu s-a primit URL imagine')
-        }
-
-        // Răspuns cu imaginea editată în chat
-        const assistantMessage = {
-          role: 'assistant',
-          id: generateId(),
-          content: `![Imagine editată](${imageUrl})`,
-          versions: [{ content: `![Imagine editată](${imageUrl})` }],
-          versionIndex: 0,
-        }
-
-        setConversations(prev =>
-          prev.map(c =>
-            c.id === convId
-              ? { ...c, messages: [...c.messages, assistantMessage], updatedAt: Date.now() }
-              : c
-          )
-        )
-      } catch (err) {
-        const errorMessage = {
-          role: 'assistant',
-          content: `Eroare la editarea imaginii: ${err.message}`,
-          id: generateId(),
-          isError: true,
-        }
-        setConversations(prev =>
-          prev.map(c =>
-            c.id === convId
-              ? { ...c, messages: [...c.messages, errorMessage], updatedAt: Date.now() }
-              : c
-          )
-        )
-      }
-      return
-    }
-
-    // === Chat normal (cu sau fără imagini, dar fără editare) ===
     const conversation = convs.find(c => c.id === convId)
     const baseMessages = (conversation?.messages || []).map(m => ({
       role: m.role,
@@ -312,7 +237,7 @@ export function useChat() {
         )
       }
     )
-  }, [activeId, conversations, composeModel, runStream])
+  }, [activeId, conversations, runStream])
 
   const stopStreaming = useCallback(() => {
     if (abortRef.current) {

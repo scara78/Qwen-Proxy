@@ -4,6 +4,7 @@ const config = require('./config/index.js')
 const cors = require('cors')
 const { logger } = require('./utils/logger')
 const { initSsxmodManager } = require('./utils/ssxmod-manager')
+const { initBaxia } = require('./utils/baxia-token')
 // Single source of truth for the version string. Bumping this in the
 // root package.json automatically (a) triggers the release.yml workflow
 // because it watches paths: package.json, and (b) gets baked into the
@@ -22,6 +23,9 @@ const app = express()
 
 // Initialize SSXMOD Cookie manager
 initSsxmodManager()
+
+// Initialize Baxia token (pre-warm UMID cache; non-blocking)
+initBaxia().catch(() => { /* logged inside */ })
 
 app.use(bodyParser.json({ limit: '128mb' }))
 app.use(bodyParser.urlencoded({ limit: '128mb', extended: true }))
