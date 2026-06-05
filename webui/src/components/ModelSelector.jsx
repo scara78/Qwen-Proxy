@@ -1,6 +1,30 @@
 import { useState, useEffect, useRef } from 'react'
 import { fetchModels } from '../utils/api'
 
+// Models known to support image_edit based on the API data
+const IMAGE_EDIT_MODELS = new Set([
+  'qwen3.6-plus',
+  'qwen3.6-27b',
+  'qwen3.6-35b-a3b',
+  'qwen3.5-plus',
+  'qwen3.5-flash',
+  'qwen3.5-397b-a17b',
+  'qwen3.5-122b-a10b',
+  'qwen3.5-27b',
+  'qwen3.5-35b-a3b',
+  'qwen3-max',
+  'qwen3-235b-a22b-2507',
+  'qwen3-coder',
+  'qwen3-vl-235b-a22b',
+  'qwen3-omni-flash',
+])
+
+export function supportsImageEdit(modelId) {
+  if (!modelId) return false
+  const base = String(modelId).replace(/(?:-(?:thinking|search|image|video|image-edit))+$/, '')
+  return IMAGE_EDIT_MODELS.has(base)
+}
+
 export default function ModelSelector({ value, onChange }) {
   const [models, setModels] = useState([])
   const [open, setOpen] = useState(false)
@@ -26,7 +50,6 @@ export default function ModelSelector({ value, onChange }) {
     setLoading(true)
     try {
       const data = await fetchModels()
-      // Regex actualizat pentru a curăța sufixele qwen3.6 și qwen3.7
       const SUFF_RE = /(?:-(?:thinking|search|image|video|image-edit))+$/
       const seen = new Set()
       const baseIds = []
@@ -38,9 +61,9 @@ export default function ModelSelector({ value, onChange }) {
           baseIds.push(base)
         }
       }
-      setModels(baseIds.length > 0 ? baseIds : ['qwen3.7-plus'])
+      setModels(baseIds.length > 0 ? baseIds : ['qwen3.6-plus'])
     } catch {
-      setModels(['qwen3.7-plus'])
+      setModels(['qwen3.6-plus'])
     } finally {
       setLoading(false)
     }
@@ -49,6 +72,8 @@ export default function ModelSelector({ value, onChange }) {
   const filtered = models.filter(m =>
     m.toLowerCase().includes(search.toLowerCase())
   )
+
+  const currentSupportsImageEdit = supportsImageEdit(value)
 
   return (
     <div className="relative" ref={ref}>
@@ -60,46 +85,76 @@ export default function ModelSelector({ value, onChange }) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
         <span className="text-slate-300 max-w-[140px] truncate">{value || 'Alege modelul'}</span>
+        {currentSupportsImageEdit && (
+          <span className="flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium bg-violet-500/20 text-violet-300 border border-violet-500/30">
+            🖼️
+          </span>
+        )}
         <svg className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-2 w-72 max-h-80 overflow-hidden rounded-xl bg-[#141428]/95 backdrop-blur-2xl border border-white/[0.12] shadow-2xl shadow-black/60 z-50 animate-fade-in">
+        <div className="absolute top-full left-0 mt-2 w-80 max-h-96 overflow-hidden rounded-xl bg-[#141428]/95 backdrop-blur-2xl border border-white/[0.12] shadow-2xl shadow-black/60 z-50 animate-fade-in">
           <div className="p-2 border-b border-white/[0.06]">
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Caută model..."
-              className="w-full px-3 py-2 bg-white/[0.08] rounded-lg text-sm text-slate-200 placeholder-slate-500 outline-none border border-white/[0.06] focus:border-accent-primary/30 "
+              className="w-full px-3 py-2 bg-white/[0.08] rounded-lg text-sm text-slate-200 placeholder-slate-500 outline-none border border-white/[0.06] focus:border-accent-primary/30"
               autoFocus
             />
           </div>
-          <div className="overflow-y-auto max-h-60 p-1">
+
+          {/* Image edit recommendation banner */}
+          <div className="px-3 py-2 border-b border-white/[0.06] bg-violet-500/[0.06]">
+            <div className="flex items-center gap-2 text-xs text-violet-300">
+              <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span>Modele cu 🖼️ suportă editare imagini</span>
+            </div>
+            <div className="mt-1 text-[10px] text-violet-400/70">
+              Recomandat pentru editare: <span className="font-mono text-violet-300">qwen3.6-plus</span>
+            </div>
+          </div>
+
+          <div className="overflow-y-auto max-h-64 p-1">
             {loading ? (
               <div className="px-3 py-4 text-center text-sm text-slate-500">Se încarcă...</div>
             ) : filtered.length === 0 ? (
               <div className="px-3 py-4 text-center text-sm text-slate-500">Niciun model găsit</div>
             ) : (
-              filtered.map((model) => (
-                <button
-                  key={model}
-                  onClick={() => {
-                    onChange(model)
-                    setOpen(false)
-                    setSearch('')
-                  }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
-                    model === value
-                      ? 'bg-accent-primary/15 text-accent-glow'
-                      : 'text-slate-300 hover:bg-white/[0.08] hover:text-white'
-                  }`}
-                >
-                  <span className="font-mono text-xs">{model}</span>
-                </button>
-              ))
+              filtered.map((model) => {
+                const hasImageEdit = supportsImageEdit(model)
+                return (
+                  <button
+                    key={model}
+                    onClick={() => {
+                      onChange(model)
+                      setOpen(false)
+                      setSearch('')
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all duration-150 flex items-center justify-between gap-2 ${
+                      model === value
+                        ? 'bg-accent-primary/15 text-accent-glow'
+                        : 'text-slate-300 hover:bg-white/[0.08] hover:text-white'
+                    }`}
+                  >
+                    <span className="font-mono text-xs truncate">{model}</span>
+                    {hasImageEdit && (
+                      <span
+                        className="flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium bg-violet-500/20 text-violet-300 border border-violet-500/30"
+                        title="Suportă editare imagini"
+                      >
+                        🖼️ img-edit
+                      </span>
+                    )}
+                  </button>
+                )
+              })
             )}
           </div>
         </div>
